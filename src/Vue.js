@@ -8,11 +8,13 @@ class Vue {
     this.$options = options;
     // 传入date
     this.$data = options.data;
+    this.proxy(this.$data);
+
+    this.$methods = options.methods;
+    this.proxy(this.$methods);
     // 响应化处理
     this.observe(options.data);
-
     new Compile(options.el, this);
-
     options.created && options.created.call(this);
   }
   observe(data) {
@@ -21,7 +23,6 @@ class Vue {
     }
     Object.keys(data).forEach((key) => {
       this.defineReactive(data, key, data[key]);
-      this.proxyData(key);
     });
   }
   defineReactive(obj, key, value) {
@@ -41,14 +42,16 @@ class Vue {
       }
     });
   }
-  proxyData(key) {
-    Object.defineProperty(this, key, {
-      set(newValue) {
-        this.$data[key] = newValue;
-      },
-      get() {
-        return this.$data[key];
-      }
+  proxy(target) {
+    Object.keys(target).forEach((key) => {
+      Object.defineProperty(this, key, {
+        set(newValue) {
+          target[key] = newValue;
+        },
+        get() {
+          return target[key];
+        }
+      });
     });
   }
 }

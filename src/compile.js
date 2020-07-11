@@ -48,6 +48,9 @@ class Compile {
   textUpdate(node, value) {
     node.textContent = value;
   }
+  valueUpdate(node, value) {
+    node.value = value;
+  }
   compileElement(node) {
     const nodeAttr = node.attributes;
     Array.from(nodeAttr).forEach((attr) => {
@@ -57,10 +60,22 @@ class Compile {
         const dir = attrName.substring(2);
         this[dir] && this[dir](node, exp);
       }
+      if (attrName.indexOf("@") == 0) {
+        const event = attrName.substring(1);
+        node.addEventListener(event, () => {
+          this.$vm[exp] && this.$vm[exp]();
+        });
+      }
     });
   }
   text(node, exp) {
     this.update(node, exp, "text");
+  }
+  model(node, exp) {
+    this.update(node, exp, "value");
+    node.addEventListener("input", (e) => {
+      this.$vm[exp] = e.target.value;
+    });
   }
 }
 
